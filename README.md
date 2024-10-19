@@ -6,10 +6,10 @@ Notas Bibliografia:
 
 "https://www.cyberciti.biz/faq/bash-get-basename-of-filename-or-directory-name/"
 
-<<<<<<< HEAD
 "https://www.cyberciti.biz/faq/linux-unix-shell-check-if-directory-empty/"
-=======
+
 "https://www.cyberciti.biz/faq/linux-unix-shell-check-if-directory-empty/"
 
 "https://sentry.io/answers/determine-whether-a-directory-exists-in-bash/"
->>>>>>> 4a1a567 (git push)
+
+"https://kodekloud.com/blog/bash-getopts/"
