@@ -12,6 +12,9 @@ checkMode=false;
 tfile="";
 regex="";
 
+pathtoDir="$1";
+backupDir="$2";
+
 # Definição das opções aceitas pelo script
 optS=":cb:r:"  
 
@@ -207,4 +210,4 @@ function RecursiveDir(){
 }
 
 # Chama a função principal de backup com os diretórios fornecidos
-accsBackup "$pathtoDir" "$backupDir" 
+accsBackup  
