@@ -9,8 +9,8 @@ function accsBackup(){
     backupDir="/home/marta/Backup";
     pathtoDir="/home/marta/TESTEPROJ";
 
-    user=$(whoami);                         #Várias maneiras de colocar!!
-    backupDir="/home/${user}/Backup";
+    #user=$(whoami);                         #Várias maneiras de colocar!!
+    #backupDir="/home/${user}/Backup";
 
     if [ ! -d "$backupDir" ]; then
 
