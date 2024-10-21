@@ -1,34 +1,51 @@
 #!/bin/bash
 
+checkMode=false;
+
+while getopts ":c" opt; do
+case ${opt} in
+
+    c)
+        # Ativa o modo de verificação (check mode)
+        checkMode=true;
+
+    ;;
+
+    ?)
+        # Exibe mensagem de erro para opções inválidas
+        echo "Invalid option: -${OPTARG}."
+
+        exit 1
+
+    ;;
+
+esac
+done
+
+function checkModeM(){
+
+    if [ $checkMode = false ]; then
+
+        "$@";
+
+    fi
+
+}
+
+shift $((OPTIND - 1))
+
+pathtoDir="$1";
+backupDir="$2";
+
 function accsBackup(){
-    #echo "What's the path to the Backup Directory?"
-    #read backupDir
-    #echo "What's the path to the Directory that you want to backup? (it can only have files)"
-    #read backupDir
-
-    backupDir="/home/marta/Backup";
-    pathtoDir="/home/marta/TESTEPROJ";
-
-    #user=$(whoami);                         #Várias maneiras de colocar!!
-    #backupDir="/home/${user}/Backup";
 
     if [ ! -d "$backupDir" ]; then
 
         echo "Creating Backup Directory"
 
-        mkdir -p $backupDir;
+        checkModeM mkdir -p $backupDir;
 
         echo "mkdir -p $backupDir";
-
-        lastDate=$(date +'%Y%m%d_%H%M%S');
-
-        backupFilename="backup_${lastDate}.tar.gz";
-
-        tar czf "${backupDir}/${backupFilename}" $pathtoDir;
-
-        tar -tzf "${backupDir}/${backupFilename}"
-
-        echo "Backup created: ${backupDir}/${backupFilename}";
     
     else
     
@@ -38,14 +55,14 @@ function accsBackup(){
 
     if [ find $backupDir -empty -type d ]; then
         
-        cp -a $pathtoDir/. $backupDir;
+        checkModeM cp -a $pathtoDir/. $backupDir;
 
         echo "cp -a $pathtoDir/. $backupDir";
 
     else
-        ls -l $pathtoDir;
+        checkModeM ls -l $pathtoDir;
 
-        ls -l $backupDir;
+        checkModeM ls -l $backupDir;
 
         for file in $pathtoDir/*;do
 
@@ -65,13 +82,17 @@ function accsBackup(){
 
                     echo "File $(basename "$file") has a different modification date in the backup.";
 
-                    cp -a "$file" $backupDir;
+                    checkModeM cp -a "$file" $backupDir;
+
+                    echo "cp -a $file $backupDir";
 
                 fi
             else
                 echo "File $(basename "$file") is missing in the backup.Let's add it to the backup.";
 
-                cp -a "$file" $backupDir;
+                checkModeM cp -a "$file" $backupDir;
+
+                echo "cp -a $file $backupDir";
             fi
 
         done
