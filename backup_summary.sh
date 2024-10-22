@@ -55,7 +55,7 @@ done
 
 function fileT(){
     for file2 in $1; do
-        if [ -d "$file2" ];then
+        if [ -d "$file2" ]; then
 
             fileT $file2
 
