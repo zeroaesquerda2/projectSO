@@ -18,16 +18,21 @@ case ${opt} in
     b)
         # Define o ficheiro de exclusão
         tfile="$OPTARG"
-
         if [ -n "$tfile" ] && [ -f "$tfile" ]; then
 
             while read -r LINE; do
+
+                if [ -d "$LINE" ]; then
+
+                    fileT $LINE
+
+                fi
 
                 fileList+=("$LINE")
 
             done < "$tfile"
 
-        fi
+    fi
 
     ;;
 
@@ -47,6 +52,32 @@ case ${opt} in
 
     esac
 done
+
+function fileT(){
+    for file2 in $1; do
+        if [ -d "$file2" ];then
+
+            fileT $file2
+
+        if [ -f "$file2" ]; then
+
+            fileList+=("$file2")
+            
+        fi
+    done
+}
+
+# Função para verificar se um ficheiro deve ser excluído
+function fileM() {
+    for item in "${fileList[@]}"; do
+        if [[ "$(basename "$1")" == "$item" ]]; then
+            
+            return 1  # O ficheiro está na lista de exclusão
+
+        fi
+    done
+    return 0
+}
 
 # Função para verificar se um ficheiro corresponde à expressão regular
 function regexM(){
@@ -72,18 +103,6 @@ shift $((OPTIND - 1))
 
 pathtoDir="$1"
 backupDir="$2"
-
-# Função para verificar se um ficheiro deve ser excluído
-function fileM() {
-    for item in "${fileList[@]}"; do
-        if [[ "$(basename "$1")" == "$item" ]]; then
-            
-            return 1  # O ficheiro está na lista de exclusão
-
-        fi
-    done
-    return 0
-}
 
 if [ ! -d "$pathtoDir" ]; then
 
@@ -117,10 +136,6 @@ function accsBackup(){
             echo "Files that are in the Directory we want to backup"
 
             checkModeM ls -l $pathtoDir
-
-            #checkModeM cp -a $pathtoDir/. $backupDir
-
-            #echo "cp -a $pathtoDir/. $backupDir"
 
             Backup "$pathtoDir/." "$backupDir"
 
@@ -162,7 +177,6 @@ function Backup(){
         fi
     done
 }
-
 # Função recursiva para copiar arquivos e diretórios
 function RecursiveDir(){
     for file in $pathtoDir/*; do
