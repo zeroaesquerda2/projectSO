@@ -60,7 +60,7 @@ function regexM(){
 
 # Função para executar ou apenas exibir comandos com base no modo de verificação.
 function checkModeM(){
-    if [ $checkMode == false ]; then
+    if [[ $checkMode == false ]]; then
 
         "$@"
 
@@ -76,7 +76,7 @@ backupDir="$2"
 # Função para verificar se um ficheiro deve ser excluído
 function fileM() {
     for item in "${fileList[@]}"; do
-        if [[ "$(basename "$1")" =~ "$item" ]]; then
+        if [[ "$(basename "$1")" == "$item" ]]; then
             
             return 1  # O ficheiro está na lista de exclusão
 
@@ -112,11 +112,17 @@ function accsBackup(){
     fi
 
     # Verifica se o diretório de backup está vazio
-    if find $backupDir -empty -type d; then
+    if [ ! "$(ls -A $backupDir)" ]; then
 
-            checkModeM cp -a $pathtoDir/. $backupDir
+            echo "Files that are in the Directory we want to backup"
 
-            echo "cp -a $pathtoDir/. $backupDir"
+            checkModeM ls -l $pathtoDir
+
+            #checkModeM cp -a $pathtoDir/. $backupDir
+
+            #echo "cp -a $pathtoDir/. $backupDir"
+
+            Backup "$pathtoDir/." "$backupDir"
 
     else
 
@@ -133,15 +139,41 @@ function accsBackup(){
     fi
 }
 
+function Backup(){
+    for file in $pathtoDir/*; do
+        if ! fileM "$file" ; then
+
+            continue
+
+        fi
+        if [ -f "$file" ]; then
+
+            checkModeM cp -a "$file" "$backupDir"
+
+            echo "cp -a "$file" $backupDir"
+
+        elif [ -d "$file" ]; then
+
+                checkModeM cp -a "$file" "$backupDir"
+
+                echo "cp -a $file $backupDir" 
+
+                RecursiveDir "$file" "$backup_file"
+        fi
+    done
+}
+
 # Função recursiva para copiar arquivos e diretórios
 function RecursiveDir(){
     for file in $pathtoDir/*; do
 
-        echo "$file"
-
         backup_file="$backupDir/$(basename "$file")"
+
+        if fileM "$file".txt ; then
+            continue
+        fi
         
-        if [ -f "$backup_file" ] &&  fileM "$backup_file" ; then
+        if [ -f "$backup_file" ]; then
 
             date_file=$(ls -l "$file" | awk '{print $6}')
 
@@ -155,7 +187,7 @@ function RecursiveDir(){
 
                 echo "File $(basename "$file") has a different modification date."
 
-                checkModeM cp -a "$file" $backupDir
+                checkModeM cp -a "$file" "$backupDir"
 
                 echo "cp -a "$file" $backupDir" 
 
@@ -163,9 +195,9 @@ function RecursiveDir(){
 
         elif [ -d "$file" ]; then
 
-                checkModeM cp -a "$file" $backupDir
+                checkModeM cp -a "$file" "$backupDir"
 
-                echo "cp -a "$file" $backupDir" 
+                echo "cp -a $file $backupDir" 
 
                 RecursiveDir "$file" "$backup_file"
 
@@ -173,11 +205,11 @@ function RecursiveDir(){
 
             echo "File $(basename "$file") is missing. Let's add it to the backup."
 
-            checkModeM cp -a "$file" $backupDir
+            checkModeM cp -a "$file" "$backupDir"
 
             echo "cp -a "$file" $backupDir" 
         fi
-
+        
     done
 }
 
