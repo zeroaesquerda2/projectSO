@@ -13,3 +13,5 @@ Notas Bibliografia:
 "https://sentry.io/answers/determine-whether-a-directory-exists-in-bash/"
 
 "https://kodekloud.com/blog/bash-getopts/"
+
+"https://kodekloud.com/blog/read-file-in-bash/"
