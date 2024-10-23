@@ -54,12 +54,12 @@ case ${opt} in
 done
 
 function fileT(){
-    for file2 in $1; do
+    for file2 in "$1"/*; do
         if [ -d "$file2" ]; then
 
-            fileT $file2
+            fileT "$file2"
 
-        if [ -f "$file2" ]; then
+        elif [ -f "$file2" ]; then
 
             fileList+=("$file2")
             
@@ -70,7 +70,7 @@ function fileT(){
 # Função para verificar se um ficheiro deve ser excluído
 function fileM() {
     for item in "${fileList[@]}"; do
-        if [[ "$(basename "$1")" == "$item" ]]; then
+        if [[ "$1" == "$item" ]]; then
             
             return 1  # O ficheiro está na lista de exclusão
 
@@ -155,7 +155,14 @@ function accsBackup(){
 }
 
 function Backup(){
-    for file in $pathtoDir/*; do
+    local srcDir="$1"
+
+    local destDir="$2"
+
+    for file in "$srcDir"/*; do
+
+        backupFile="$destDir/$(basename "$file")"
+
         if ! fileM "$file" ; then
 
             continue
@@ -163,17 +170,17 @@ function Backup(){
         fi
         if [ -f "$file" ]; then
 
-            checkModeM cp -a "$file" "$backupDir"
+            checkModeM cp -a "$file" "$destDir"
 
-            echo "cp -a "$file" $backupDir"
+            echo "cp -a "$file" $destDir"
 
         elif [ -d "$file" ]; then
 
-                checkModeM cp -a "$file" "$backupDir"
+                checkModeM cp -a "$file" "$destDir"
 
-                echo "cp -a $file $backupDir" 
+                echo "cp -a $file $destDir" 
 
-                RecursiveDir "$file" "$backup_file"
+                Backup "$file" "$backupFile"
         fi
     done
 }
@@ -183,7 +190,7 @@ function RecursiveDir(){
 
         backup_file="$backupDir/$(basename "$file")"
 
-        if fileM "$file".txt ; then
+        if ! fileM "$file" ; then
             continue
         fi
         
