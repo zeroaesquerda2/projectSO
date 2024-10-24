@@ -11,7 +11,7 @@ case ${opt} in
 
     c)
         # Ativa o modo de verificação (check mode)
-        checkMode=true;
+        checkMode=true
 
     ;;
 
@@ -176,19 +176,23 @@ function Backup(){
 
         elif [ -d "$file" ]; then
 
-                checkModeM cp -a "$file" "$destDir"
+            checkModeM cp -a "$file" "$destDir"
 
-                echo "cp -a $file $destDir" 
+            echo "cp -a $file $destDir" 
 
-                Backup "$file" "$backupFile"
+            Backup "$file" "$backupFile"
         fi
     done
 }
 # Função recursiva para copiar arquivos e diretórios
 function RecursiveDir(){
-    for file in $pathtoDir/*; do
+    local srcDir="$1"
 
-        backup_file="$backupDir/$(basename "$file")"
+    local destDir="$2" 
+
+    for file in "$srcDir"/*; do
+
+        backup_file="$destDir/$(basename "$file")"
 
         if ! fileM "$file" ; then
             continue
@@ -208,17 +212,17 @@ function RecursiveDir(){
 
                 echo "File $(basename "$file") has a different modification date."
 
-                checkModeM cp -a "$file" "$backupDir"
+                checkModeM cp -a "$file" "$destDir"
 
-                echo "cp -a "$file" $backupDir" 
+                echo "cp -a "$file" $destDir" 
 
             fi
 
         elif [ -d "$file" ]; then
 
-                checkModeM cp -a "$file" "$backupDir"
+                checkModeM cp -a "$file" "$destDir"
 
-                echo "cp -a $file $backupDir" 
+                echo "cp -a $file $destDir" 
 
                 RecursiveDir "$file" "$backup_file"
 
@@ -226,9 +230,9 @@ function RecursiveDir(){
 
             echo "File $(basename "$file") is missing. Let's add it to the backup."
 
-            checkModeM cp -a "$file" "$backupDir"
+            checkModeM cp -a "$file" "$destDir"
 
-            echo "cp -a "$file" $backupDir" 
+            echo "cp -a "$file" $destDir" 
         fi
         
     done
