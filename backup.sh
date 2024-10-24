@@ -237,5 +237,3 @@ function RecursiveDir(){
 
 # Chama a função principal de backup com os diretórios fornecidos
 accsBackup  
- 
-# test github
