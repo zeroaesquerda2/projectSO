@@ -250,11 +250,6 @@ function RecursiveDir(){
         fi
         
     done
-    for file in "$destDir"/*; do
-        if 
-    done
 }
-
-
 # Chama a função principal de backup com os diretórios fornecidos
 accsBackup  

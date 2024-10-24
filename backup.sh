@@ -171,6 +171,12 @@ function Backup(){
         fi
         if [ -f "$file" ]; then
 
+            if regexM "$file" ; then
+
+                continue
+            
+            fi
+
             checkModeM cp -a "$file" "$destDir"
 
             echo "cp -a "$file" $destDir"
@@ -196,6 +202,12 @@ function RecursiveDir(){
         fi
         
         if [ -f "$backup_file" ]; then
+
+            if regexM "$file" ; then
+
+                continue
+            
+            fi
 
             date_file=$(ls -l "$file" | awk '{print $6}')
 
@@ -234,6 +246,18 @@ function RecursiveDir(){
         
     done
 }
-
+func
 # Chama a função principal de backup com os diretórios fornecidos
 accsBackup  
+
+#    for file2 in "$destDir"/*; do
+#        if [ -f "$file2" ]; then
+#
+#            if [ ! -e "$file2" ]; then 
+#
+#                rm "$file2"
+#
+#            fi
+#        fi
+#        if [ -d ]
+#    done
