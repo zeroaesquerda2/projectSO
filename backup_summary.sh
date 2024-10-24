@@ -11,7 +11,7 @@ case ${opt} in
 
     c)
         # Ativa o modo de verificação (check mode)
-        checkMode=true;
+        checkMode=true
 
     ;;
 

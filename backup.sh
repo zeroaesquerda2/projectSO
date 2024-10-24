@@ -176,11 +176,11 @@ function Backup(){
 
         elif [ -d "$file" ]; then
 
-                checkModeM cp -a "$file" "$destDir"
+            checkModeM cp -a "$file" "$destDir"
 
-                echo "cp -a $file $destDir" 
+            echo "cp -a $file $destDir" 
 
-                Backup "$file" "$backupFile"
+            Backup "$file" "$backupFile"
         fi
     done
 }
