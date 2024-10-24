@@ -168,6 +168,11 @@ function Backup(){
             continue
 
         fi
+        if ! regexM "$file" ; then
+
+            continue
+
+        fi
         if [ -f "$file" ]; then
 
             checkModeM cp -a "$file" "$destDir"
@@ -195,9 +200,15 @@ function RecursiveDir(){
         backup_file="$destDir/$(basename "$file")"
 
         if ! fileM "$file" ; then
+
             continue
-        fi
         
+        fi
+        if ! regexM "$file" ; then
+
+            continue
+            
+        fi
         if [ -f "$backup_file" ]; then
 
             date_file=$(ls -l "$file" | awk '{print $6}')
