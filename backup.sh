@@ -10,6 +10,7 @@ while getopts ":cb:r:" opt; do
 case ${opt} in
 
     c)
+    
         # Ativa o modo de verificação (check mode)
         checkMode=true;
 
@@ -236,4 +237,3 @@ function RecursiveDir(){
 
 # Chama a função principal de backup com os diretórios fornecidos
 accsBackup  
- 
