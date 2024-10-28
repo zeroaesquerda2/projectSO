@@ -56,14 +56,15 @@ done
 
 function fileT(){
     for file2 in "$1"/*; do
-        if [ -d "$file2" ]; then
+
+        if [ -f "$file2" ]; then
+
+            fileList+=("$file2")
+    
+        elif [ -d "$file2" ]; then
 
             fileT "$file2"
 
-        elif [ -f "$file2" ]; then
-
-            fileList+=("$file2")
-            
         fi
     done
 }
@@ -73,11 +74,11 @@ function fileM() {
     for item in "${fileList[@]}"; do
         if [[ "$1" == "$item" ]]; then
             
-            return 1  # O ficheiro está na lista de exclusão
+            return 0  # O ficheiro está na lista de exclusão
 
         fi
     done
-    return 0
+    return 1
 }
 
 # Função para verificar se um ficheiro corresponde à expressão regular
@@ -138,7 +139,7 @@ function accsBackup(){
 
             checkModeM ls -l $pathtoDir
 
-            Backup "$pathtoDir/." "$backupDir"
+            RecursiveDir "$pathtoDir/." "$backupDir"
 
     else
 
@@ -155,98 +156,74 @@ function accsBackup(){
     fi
 }
 
-function Backup(){
-    local srcDir="$1"
+# Função recursiva para copiar arquivos e diretórios
+function RecursiveDir(){
 
-    local destDir="$2"
+    local srcDir="$1";
+
+    local destDir="$2";
 
     for file in "$srcDir"/*; do
 
-        backupFile="$destDir/$(basename "$file")"
+        backup_file="$destDir/$(basename "$file")"
 
-        if ! fileM "$file" ; then
+        if fileM "$file" ; then
 
             continue
-
+        
         fi
+
         if [ -f "$file" ]; then
 
-            if regexM "$file" ; then
+            if [ -f "$backup_file" ]; then
 
-                continue
-            
-            fi
+                if regexM "$file" ; then
 
-            checkModeM cp -a "$file" "$destDir"
+                    continue
+                
+                fi
 
-            echo "cp -a "$file" $destDir"
+                date_file=$(stat -c %y "$file")
 
-        elif [ -d "$file" ]; then
+                backup_date=$(stat -c %y "$backup_file")
 
-            checkModeM cp -a "$file" "$destDir"
+                if [ "$date_file" == "$backup_date" ]; then
 
-            echo "cp -a $file $destDir" 
+                    echo "$(basename "$file") is up-to-date."
 
-            Backup "$file" "$backupFile"
-        fi
-    done
-}
-# Função recursiva para copiar arquivos e diretórios
-function RecursiveDir(){
-    for file in $pathtoDir/*; do
+                else
 
-        backup_file="$backupDir/$(basename "$file")"
+                    echo "$(basename "$file") has a different modification date."
 
-        if ! fileM "$file" ; then
-            continue
-        fi
-        
-        if [ -f "$backup_file" ]; then
+                    checkModeM cp -a "$file" "$destDir"
 
-            if regexM "$file" ; then
+                    echo "cp -a "$file" $destDir" 
 
-                continue
-            
-            fi
-
-            date_file=$(ls -l "$file" | awk '{print $6}')
-
-            backup_date=$(ls -l "$backup_file" | awk '{print $6}')
-
-            if [ "$date_file" == "$backup_date" ]; then
-
-                echo "File $(basename "$file") is up-to-date."
-
+                fi
             else
 
-                echo "File $(basename "$file") has a different modification date."
+                echo "$(basename "$file") is missing. Let's add it to the backup."
 
-                checkModeM cp -a "$file" "$backupDir"
+                checkModeM cp -a "$file" "$destDir"
 
-                echo "cp -a "$file" $backupDir" 
+                echo "cp -a "$file" $destDir" 
 
             fi
 
         elif [ -d "$file" ]; then
 
-                checkModeM cp -a "$file" "$backupDir"
+                echo "$(basename "$file") is missing. Let's add it to the backup."
 
-                echo "cp -a $file $backupDir" 
+                checkModeM cp -a "$file" "$destDir"
+
+                echo "cp -a $file $destDir" 
 
                 RecursiveDir "$file" "$backup_file"
 
-        else
-
-            echo "File $(basename "$file") is missing. Let's add it to the backup."
-
-            checkModeM cp -a "$file" "$backupDir"
-
-            echo "cp -a "$file" $backupDir" 
         fi
         
     done
 }
-func
 # Chama a função principal de backup com os diretórios fornecidos
 accsBackup  
 
