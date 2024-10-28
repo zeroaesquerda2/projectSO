@@ -1,9 +1,16 @@
-#!/bin/bash
-# Variáveis para armazenar os modos e opções
-checkMode=false
 tfile=""
 regex=""
 fileList=()
+
+# Contadores
+errors=0
+warnings=0
+updatedFiles=0
+copiedFiles=0
+copiedSize=0
+deletedFiles=0
+deletedSize=0
+
 
 # Processamento das opções passadas na linha de comando
 while getopts ":cb:r:" opt; do
@@ -107,7 +114,7 @@ backupDir="$2"
 if [ ! -d "$pathtoDir" ]; then
 
     echo "Error: O diretório de trabalho '$pathtoDir' não existe."
-
+    ((errors++))
     exit 1
 
 fi
@@ -120,7 +127,7 @@ function accsBackup(){
 
         echo "Creating Backup Directory"
 
-        checkModeM mkdir -p "$backupDir"
+        checkModeM mkdir -p "$backupDir" || ((errors++))
 
         echo "mkdir -p $backupDir"
     
@@ -152,6 +159,9 @@ function accsBackup(){
         RecursiveDir "$pathtoDir" "$backupDir"
 
     fi
+
+    # o print da funcao summary depois do processamento
+    printSummary "$pathtoDir"
 }
 
 function Backup(){
@@ -169,20 +179,24 @@ function Backup(){
 
         fi
         if [ -f "$file" ]; then
+            local fileSize=$(stat -c%s "$file")
 
-            if regexM "$file" ; then
-
-                continue
-            
+            if checkModeM cp -a "$file" "$destDir"; then
+                ((copiedFiles++))
+                copiedSize=$((copiedSize + fileSize))
+            else
+                ((errors++))
             fi
-
-            checkModeM cp -a "$file" "$destDir"
 
             echo "cp -a "$file" $destDir"
 
         elif [ -d "$file" ]; then
 
-            checkModeM cp -a "$file" "$destDir"
+            if checkModeM cp -a "$file" "$destDir"; then
+                ((copiedFiles++))
+            else
+                ((errors++))
+            fi
 
             echo "cp -a $file $destDir" 
 
@@ -201,18 +215,10 @@ function RecursiveDir(){
         backup_file="$destDir/$(basename "$file")"
 
         if ! fileM "$file" ; then
-
             continue
-        
         fi
         
         if [ -f "$backup_file" ]; then
-
-            if regexM "$file" ; then
-
-                continue
-            
-            fi
 
             date_file=$(ls -l "$file" | awk '{print $6}')
 
@@ -225,8 +231,14 @@ function RecursiveDir(){
             else
 
                 echo "File $(basename "$file") has a different modification date."
+                local fileSize=$(stat -c%s "$file")
 
-                checkModeM cp -a "$file" "$destDir"
+                if checkModeM cp -a "$file" "$destDir"; then
+                    ((updatedFiles++))
+                    copiedSize=$((copiedSize + fileSize))
+                else
+                    ((errors++))
+                fi
 
                 echo "cp -a "$file" $destDir" 
 
@@ -234,22 +246,51 @@ function RecursiveDir(){
 
         elif [ -d "$file" ]; then
 
-                checkModeM cp -a "$file" "$destDir"
+            if checkModeM cp -a "$file" "$destDir"; then
+                ((copiedFiles++))
+            else
+                ((errors++))
+            fi
 
-                echo "cp -a $file $destDir" 
+            echo "cp -a $file $destDir" 
 
-                RecursiveDir "$file" "$backup_file"
+            RecursiveDir "$file" "$backup_file"
 
         else
 
             echo "File $(basename "$file") is missing. Let's add it to the backup."
+            local fileSize=$(stat -c%s "$file")
 
-            checkModeM cp -a "$file" "$destDir"
+            if checkModeM cp -a "$file" "$destDir"; then
+                ((copiedFiles++))
+                copiedSize=$((copiedSize + fileSize))
+            else
+                ((errors++))
+            fi
 
             echo "cp -a "$file" $destDir" 
         fi
         
     done
 }
+
+
+# Função para imprimir o sumário
+function printSummary() {
+    local dirName="$1" # nome da diretoria origem (onde estao os ficheiros para backup)
+
+    echo "While backing up $dirName: $errors Errors; $warnings Warnings; $updatedFiles Updated; $copiedFiles Copied (${copiedSize}B); $deletedFiles Deleted (${deletedSize}B)"
+
+    # Reset dos contadores
+    errors=0
+    warnings=0
+    updatedFiles=0
+    copiedFiles=0
+    deletedFiles=0
+    copiedSize=0
+    deletedSize=0
+}
+
 # Chama a função principal de backup com os diretórios fornecidos
 accsBackup  
+ 
