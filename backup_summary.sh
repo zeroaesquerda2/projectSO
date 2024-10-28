@@ -204,7 +204,6 @@ function Backup(){
         fi
     done
 }
-
 # Função recursiva para copiar arquivos e diretórios
 function RecursiveDir(){
     local srcDir="$1"
