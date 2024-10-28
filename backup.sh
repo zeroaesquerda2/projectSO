@@ -19,21 +19,29 @@ case ${opt} in
     b)
         # Define o ficheiro de exclusão
         tfile="$OPTARG"
+
         if [ -n "$tfile" ] && [ -f "$tfile" ]; then
 
             while read -r LINE; do
 
                 if [ -d "$LINE" ]; then
 
-                    fileT $LINE
+                    fileT "$LINE"  # Chama a função para tratar diretórios recursivamente
 
                 fi
 
-                fileList+=("$LINE")
+                fileList+=("$LINE")  # Adiciona arquivo/diretório à lista
+
 
             done < "$tfile"
 
-    fi
+            for item in "${fileList[@]}"; do
+        
+                echo "$item"
+            
+            done
+            
+        fi
 
     ;;
 
@@ -54,29 +62,18 @@ case ${opt} in
     esac
 done
 
-function fileT(){
-    for file2 in "$1"/*; do
-
-        if [ -f "$file2" ]; then
-
-            fileList+=("$file2")
-    
-        elif [ -d "$file2" ]; then
-
-            fileT "$file2"
-
-        fi
-    done
-}
-
 # Função para verificar se um ficheiro deve ser excluído
 function fileM() {
+    local file=$1
+
     for item in "${fileList[@]}"; do
-        if [[ "$1" == "$item" ]]; then
+        
+        if [[ "$item" == "$file" ]]; then
             
             return 0  # O ficheiro está na lista de exclusão
 
         fi
+        
     done
     return 1
 }
@@ -156,6 +153,37 @@ function accsBackup(){
     fi
 }
 
+function Delete() {
+    local destDir="$1"   # Backup directory
+    local pathDir="$2"   # Source directory
+
+    for backupFile in "$destDir"/*; do
+
+        srcFile="$pathDir/$(basename "$backupFile")"
+
+        if [ -f "$backupFile" ]; then
+            # If the file exists in backup but not in source, delete it
+            if [ ! -e "$srcFile" ]; then
+                checkModeM rm -rf "$backupFile"
+                echo "Removing $backupFile as it's not in the source directory"
+            fi
+
+        elif [ -d "$backupFile" ]; then
+            
+            if [ ! -e "$srcFile" ]; then
+                
+                checkModeM rm -rf "$backupFile"
+
+                echo "Removing directory $backupFile as it's not in the source directory"
+
+            else
+                
+                Delete "$backupFile" "$srcFile"
+            fi
+        fi
+    done
+}
+
 # Função recursiva para copiar arquivos e diretórios
 function RecursiveDir(){
 
@@ -165,13 +193,13 @@ function RecursiveDir(){
 
     for file in "$srcDir"/*; do
 
-        backup_file="$destDir/$(basename "$file")"
-
-        if fileM "$file" ; then
+        if fileM "$file"; then
 
             continue
         
         fi
+
+        backup_file="$destDir/$(basename "$file")"
 
         if [ -f "$file" ]; then
 
@@ -202,8 +230,6 @@ function RecursiveDir(){
                 fi
             else
 
-                echo "$(basename "$file") is missing. Let's add it to the backup."
-
                 checkModeM cp -a "$file" "$destDir"
 
                 echo "cp -a "$file" $destDir" 
@@ -212,7 +238,11 @@ function RecursiveDir(){
 
         elif [ -d "$file" ]; then
 
-                echo "$(basename "$file") is missing. Let's add it to the backup."
+            if [ -e "$backup_file" ]; then
+
+                RecursiveDir "$file" "$backup_file"
+
+            else
 
                 checkModeM cp -a "$file" "$destDir"
 
@@ -220,21 +250,14 @@ function RecursiveDir(){
 
                 RecursiveDir "$file" "$backup_file"
 
+            fi
+
         fi
         
     done
+
+    Delete "$backupDir" "$pathtoDir"
+
 }
 # Chama a função principal de backup com os diretórios fornecidos
 accsBackup  
-
-#    for file2 in "$destDir"/*; do
-#        if [ -f "$file2" ]; then
-#
-#            if [ ! -e "$file2" ]; then 
-#
-#                rm "$file2"
-#
-#            fi
-#        fi
-#        if [ -d ]
-#    done
