@@ -66,7 +66,8 @@ done
 function fileM() {
     local file=$1
 
-    for item in "${fileList[@]}"; do
+    for item in "${
+    fileList[@]}"; do
         
         if [[ "$item" == "$file" ]]; then
             
