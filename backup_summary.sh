@@ -31,10 +31,13 @@ case ${opt} in
 
         if [ -n "$tfile" ] && [ -f "$tfile" ]; then
 
-            while read -r LINE; do
-
-                fileList+=("$(basename "$LINE")")  # Adiciona arquivo/diretório à lista
-
+            while IFS= read -r LINE || [ -n "$LINE" ]; do
+                if [ -n "$LINE" ]; then # verifica se a linha sta vazia
+                    fileList+=("$(basename "$LINE")")   # Adiciona o nome base à lista de exclusão
+                else
+                    echo "Warning: Found an empty line in the exclusion file."
+                    ((warnings++))
+                fi
             done < "$tfile"
 
             for item in "${fileList[@]}"; do
@@ -43,9 +46,9 @@ case ${opt} in
             
             done
 
-            else
-                echo "Error: Exclusion file '$tfile' does not exist or is not accessible."
-                ((errors++))
+        else
+            echo "Error: Exclusion file '$tfile' does not exist or is not accessible."
+            ((errors++))
             
         fi
 

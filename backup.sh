@@ -242,7 +242,7 @@ function RecursiveDir(){
 
             elif [ -d "$file" ]; then
 
-                if [ -d "$backup_file" ]; then  
+                if [ -d "$backup_file" ]; then
 
                     RecursiveDir "$file" "$backup_file"
 
