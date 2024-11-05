@@ -125,14 +125,16 @@ function accsBackup(){
     
     else
     
-        echo "Backup Directory Already Exists"
+        echo -e "\e[1mBackup Directory Already Exists\e[0m"
+
+        echo ""
     
     fi
 
     # Verifica se o diretório de backup está vazio
     if [ ! "$(ls -A $backupDir)" ]; then
 
-            echo "Files that are in the Directory we want to backup"
+            echo -e "\e[1mFiles that are in the Directory we want to backup\e[0m"
 
             checkModeM ls -l $pathtoDir
 
@@ -140,11 +142,11 @@ function accsBackup(){
 
     else
 
-        echo "Files that are in the Directory we want to backup"
-
+        echo -e "\e[1mFiles that are in the Directory we want to backup\e[0m"
+        
         checkModeM ls -l $pathtoDir
 
-        echo "Files in the Backup Directory"
+        echo -e "\e[1mFiles in the Backup Directory\e[0m"
 
         checkModeM ls -l $backupDir
 
@@ -194,6 +196,14 @@ function RecursiveDir(){
     local destDir="$2";
 
     if [ ! -d "$srcDir" ]; then
+
+        return 1
+
+    fi
+
+    if [ -z "$(ls -A "$srcDir")" ]; then
+
+        echo "Directory $srcDir is empty."
 
         return 1
 

@@ -54,9 +54,7 @@ case ${opt} in
     ?)
         # Exibe mensagem de erro para opções inválidas
         echo "Invalid option: -${OPTARG}."
-
         ((errors++))
-
         exit 1
 
     ;;
@@ -70,11 +68,8 @@ function fileM() {
     for item in "${fileList[@]}"; do
         
         if [[ "$file" == "$item" ]]; then
-
             ((warnings++))
-
             echo "Warning: $file is in the exclusion list and will not be backed up."
-            
             return 1  # O ficheiro está na lista de exclusão
 
         fi
@@ -87,11 +82,8 @@ function fileM() {
 # Função para verificar se um ficheiro corresponde à expressão regular
 function regexM(){
     if [ -n "$regex" ] && [[ ! "$1" =~ "$regex" ]]; then
-        
         ((warnings++))
-        
         echo "Warning: $1 does not match the regex filter and will be skipped."
-        
         return 1
     
     else
@@ -150,9 +142,7 @@ function accsBackup(){
     
     else
     
-        echo -e "\e[1mBackup Directory Already Exists\e[0m"
-
-        echo ""
+        echo "Backup Directory Already Exists"
     
     fi
 
@@ -171,13 +161,9 @@ function accsBackup(){
 
         checkModeM ls -l $pathtoDir
 
-        echo ""
-
         echo -e "\e[1mFiles in the Backup Directory\e[0m"
 
         checkModeM ls -l $backupDir
-        
-        echo ""
 
         RecursiveDir "$pathtoDir" "$backupDir"
 
@@ -196,40 +182,29 @@ function Delete() {
         if [ -f "$backupFile" ]; then
             # If the file exists in backup but not in source, delete it
             if [ ! -e "$srcFile" ]; then
-
                 local fileSize=$(stat -c%s "$backupFile")
-
                 checkModeM rm -rf "$backupFile"
-
                 ((deletedFiles++))
-
                 deletedSize=$((deletedSize + fileSize))
-
                 echo "Removing $backupFile as it's not in the source directory"
-
             fi
 
         elif [ -d "$backupFile" ]; then
             
             if [ ! -e "$srcFile" ]; then
-
                 local dirSize=$(du -sb "$backupFile" | cut -f1)
-
                 checkModeM rm -rf "$backupFile"
-
                 ((deletedFiles++))
-
                 deletedSize=$((deletedSize + dirSize))
-
                 echo "Removing directory $backupFile as it's not in the source directory"
 
             else
                 
                 Delete "$backupFile" "$srcFile"
             fi
-        #else
-        #    echo "Error: Unable to access $backupFile."
-        #    ((errors++))
+        else
+            echo "Error: Unable to access $backupFile."
+            ((errors++))
         fi
     done
 }
@@ -248,118 +223,103 @@ function RecursiveDir(){
 
     fi
 
-    if [ -z "$(ls -A "$srcDir")" ]; then
+    if [ ! "$(ls -A $srcDir)" ]; then
 
         echo "Directory $srcDir is empty."
 
         return 1
 
-    fi
+    else 
 
-    for file in "$srcDir"/*; do
+        for file in "$srcDir"/*; do
 
-        if ! regexM "$(basename "$file")" ; then
+            if ! regexM "$(basename "$file")" ; then
 
-            continue
-                    
-        fi
+                continue
+                        
+            fi
 
-        if fileM "$(basename "$file")"; then
+            if fileM "$(basename "$file")"; then
 
-            backup_file="$destDir/$(basename "$file")"
+                backup_file="$destDir/$(basename "$file")"
 
-            if [ -f "$file" ]; then
-                if [ ! -r "$file" ]; then
-                    echo "Error: No read permission for file $file."
+                if [ -f "$file" ]; then
+                    if [ ! -r "$file" ]; then
+                        echo "Error: No read permission for file $file."
+                        ((errors++))
+                        continue
+                    fi
 
-                    ((errors++))
+                    local fileSize=$(stat -c%s "$file")
 
-                    continue
-                fi
+                    if [ -f "$backup_file" ]; then
 
-                local fileSize=$(stat -c%s "$file")
+                        date_file=$(stat -c %y "$file")
 
-                if [ -f "$backup_file" ]; then
+                        backup_date=$(stat -c %y "$backup_file")
 
-                    date_file=$(stat -c %y "$file")
+                        if [ "$date_file" == "$backup_date" ]; then
 
-                    backup_date=$(stat -c %y "$backup_file")
+                            echo "$(basename "$file") is up-to-date."
 
-                    if [ "$date_file" == "$backup_date" ]; then
+                        else
 
-                        echo "$(basename "$file") is up-to-date."
+                            echo "$(basename "$file") has a different modification date."
+
+                            local fileSize=$(stat -c%s "$file")
+
+                            checkModeM cp -a "$file" "$destDir"
+                            ((updatedFiles++))
+                            copiedSize=$((copiedSize + fileSize))
+                            echo "Updateing $file in $destDir"
+                            echo "cp -a $file $destDir" 
+
+                        fi
 
                     else
 
-                        echo "$(basename "$file") has a different modification date."
-
-                        local fileSize=$(stat -c%s "$file")
-
                         checkModeM cp -a "$file" "$destDir"
-
-                        ((updatedFiles++))
-
+                        ((copiedFiles++))
                         copiedSize=$((copiedSize + fileSize))
-
-                        echo "Updateing $file in $destDir"
-
-                        echo "cp -a $file $destDir" 
+                        echo "cp -a $file $destDir"
+                        echo "Updated $file to $destDir"
 
                     fi
 
+                elif [ -d "$file" ]; then
+                    if [ ! -x "$file" ]; then
+                        echo "Error: No execute permission for directory $file."
+                        ((errors++))
+                        continue
+                    fi
+
+                    #if [ -z "$(ls -A "$file")" ]; then
+                    #    ((warnings++))
+                    #    echo "Warning: Directory $file is empty and will not be copied."
+                    #else
+                        checkModeM mkdir -p "$backup_file"
+                        echo "mkdir -p $file $destDir" 
+                        RecursiveDir "$file" "$backup_file"
+                    #fi
                 else
-
-                    checkModeM cp -a "$file" "$destDir"
-
-                    ((copiedFiles++))
-
-                    copiedSize=$((copiedSize + fileSize))
-
-                    echo "cp -a $file $destDir"
-
-                    echo "Updated $file to $destDir"
-
-                fi
-
-            elif [ -d "$file" ]; then
-                if [ ! -x "$file" ]; then
-                    
-                    echo "Error: No execute permission for directory $file."
-
+                    echo "Error: $file could not be accessed."
                     ((errors++))
 
-                    continue
                 fi
 
-                #if [ -z "$(ls -A "$file")" ]; then
-                #    ((warnings++))
-                #    echo "Warning: Directory $file is empty and will not be copied."
-                #else
-                    checkModeM mkdir -p "$backup_file"
+            else 
 
-                    echo "mkdir -p $file $destDir" 
-
-                    RecursiveDir "$file" "$backup_file"
-                #fi
-            else
-
-                echo "Error: $file could not be accessed."
-
-                ((errors++))
+                continue
 
             fi
+        done
 
-        else 
+    fi
 
-            continue
-
-        fi
-
-    done
+    printSummary "$srcDir"
 
     Delete "$backupDir" "$pathtoDir"
 
-    printSummary "$srcDir"
 }
 
 
@@ -376,7 +336,6 @@ function printSummary() {
     echo "    -> While backing up $dirName: $errors Errors; $warnings Warnings; $updatedFiles Updated; $copiedFiles Copied (${copiedSize}B); $deletedFiles Deleted (${deletedSize}B)"
 
     echo ""
-    
     # Reset dos contadores
     errors=0
     warnings=0
@@ -391,4 +350,4 @@ function printSummary() {
 accsBackup "$pathtoDir" "$backupDir"
 
 # o print da funcao summary depois do processamento
-#printSummary "$pathtoDir"
+printSummary "$pathtoDir"
