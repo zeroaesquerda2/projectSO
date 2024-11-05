@@ -113,14 +113,14 @@ backupDir="$2"
 if [ ! -d "$pathtoDir" ]; then
 
     echo "Error: O diretório de trabalho '$pathtoDir' não existe."
-    ((errors++))
+    ((errors++)) ####É preciso ler o print_summary!!!!!!!!!!!!!!!!
     exit 1
 
 fi
 if [[ "$backupDir" = "$pathtoDir"* ]]; then
 
     echo "Error: O diretório de trabalho '$pathtoDir' é igual ou uma subdiretoria de '$backupDir'."
-    ((errors++))
+    ((errors++)) ####É preciso ler o print_summary!!!!!!!!!!!!!!!!
     exit 1
 
 fi
