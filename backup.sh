@@ -27,12 +27,6 @@ case ${opt} in
                 fileList+=("$(basename "$LINE")")  # Adiciona arquivo/diretório à lista
 
             done < "$tfile"
-
-            for item in "${fileList[@]}"; do
-        
-                echo "$item"
-            
-            done
             
         fi
 
@@ -102,6 +96,13 @@ backupDir="$2"
 if [ ! -d "$pathtoDir" ]; then
 
     echo "Error: O diretório de trabalho '$pathtoDir' não existe."
+
+    exit 1
+
+fi
+if [[ "$backupDir" = "$pathtoDir"* ]]; then
+
+    echo "Error: O diretório de trabalho '$pathtoDir' é igual ou uma subdiretoria de '$backupDir'."
 
     exit 1
 

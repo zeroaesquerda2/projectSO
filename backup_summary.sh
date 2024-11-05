@@ -37,12 +37,6 @@ case ${opt} in
 
             done < "$tfile"
 
-            for item in "${fileList[@]}"; do
-        
-                echo "$item"
-            
-            done
-
             else
                 echo "Error: Exclusion file '$tfile' does not exist or is not accessible."
                 ((errors++))
@@ -119,6 +113,13 @@ backupDir="$2"
 if [ ! -d "$pathtoDir" ]; then
 
     echo "Error: O diretório de trabalho '$pathtoDir' não existe."
+    ((errors++))
+    exit 1
+
+fi
+if [[ "$backupDir" = "$pathtoDir"* ]]; then
+
+    echo "Error: O diretório de trabalho '$pathtoDir' é igual ou uma subdiretoria de '$backupDir'."
     ((errors++))
     exit 1
 
