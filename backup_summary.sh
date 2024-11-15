@@ -313,7 +313,7 @@ function RecursiveDir(){
 function printSummary() {
     local dirName="$1" # nome da diretoria origem (onde estao os ficheiros para backup)
 
-    echo "While backing up $dirName: $errors Errors; $warnings Warnings; $updatedFiles Updated; $copiedFiles Copied (${copiedSize}B); $deletedFiles Deleted (${deletedSize}B)"
+    echo "While backuping $dirName: $errors Errors; $warnings Warnings; $updatedFiles Updated; $copiedFiles Copied (${copiedSize}B); $deletedFiles Deleted (${deletedSize}B)"
 
     # Reset dos contadores
     errors=0
