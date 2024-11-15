@@ -100,9 +100,10 @@ if [ ! -d "$pathtoDir" ]; then
     exit 1
 
 fi
+
 if [[ "$backupDir" = "$pathtoDir"* ]]; then
 
-    echo "Error: Work Dir '$pathtoDir' is similar or is a Subdirectory of '$backupDir'."
+    echo "Error: Work Dir '$pathtoDir' is either the same as or a subdirectory of '$backupDir'."
 
     exit 1
 

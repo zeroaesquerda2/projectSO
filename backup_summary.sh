@@ -121,14 +121,18 @@ backupDir="$2"
 if [ ! -d "$pathtoDir" ]; then
 
     echo "Error: Work Dir '$pathtoDir' doesn't exist."
-    ((errors++)) ####É preciso ler o print_summary!!!!!!!!!!!!!!!!
+    
+    ((errors++)) 
+
     exit 1
 
 fi
 if [[ "$backupDir" == "$pathtoDir"* ]]; then
 
-    echo "Error: Work Dir '$pathtoDir' is similar or is a Subdirectory of '$backupDir'."
-    ((errors++)) ####É preciso ler o print_summary!!!!!!!!!!!!!!!!
+    echo "Error: Work Dir '$pathtoDir' is either the same as or a subdirectory of '$backupDir'."
+
+    ((errors++)) 
+
     exit 1
 
 fi
