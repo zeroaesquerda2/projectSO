@@ -37,6 +37,14 @@ shift $((OPTIND - 1))
 pathtoDir="$1";
 backupDir="$2";
 
+if [ ! -d "$pathtoDir" ]; then
+
+    echo "Error: Work Directory '$pathtoDir' doesn't exist."
+
+    exit 1
+
+fi
+
 function accsBackup(){
 
     if [ ! -d "$backupDir" ]; then

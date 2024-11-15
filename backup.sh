@@ -95,14 +95,14 @@ backupDir="$2"
 
 if [ ! -d "$pathtoDir" ]; then
 
-    echo "Error: O diretório de trabalho '$pathtoDir' não existe."
+    echo "Error: Work Directory '$pathtoDir' doesn't exist."
 
     exit 1
 
 fi
 if [[ "$backupDir" = "$pathtoDir"* ]]; then
 
-    echo "Error: O diretório de trabalho '$pathtoDir' é igual ou uma subdiretoria de '$backupDir'."
+    echo "Error: Work Dir '$pathtoDir' is similar or is a Subdirectory of '$backupDir'."
 
     exit 1
 

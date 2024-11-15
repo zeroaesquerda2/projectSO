@@ -120,14 +120,14 @@ backupDir="$2"
 
 if [ ! -d "$pathtoDir" ]; then
 
-    echo "Error: O diretório de trabalho '$pathtoDir' não existe."
+    echo "Error: Work Dir '$pathtoDir' doesn't exist."
     ((errors++)) ####É preciso ler o print_summary!!!!!!!!!!!!!!!!
     exit 1
 
 fi
 if [[ "$backupDir" == "$pathtoDir"* ]]; then
 
-    echo "Error: O diretório de trabalho '$pathtoDir' é igual ou uma subdiretoria de '$backupDir'."
+    echo "Error: Work Dir '$pathtoDir' is similar or is a Subdirectory of '$backupDir'."
     ((errors++)) ####É preciso ler o print_summary!!!!!!!!!!!!!!!!
     exit 1
 
@@ -367,13 +367,8 @@ function RecursiveDir(){
 function printSummary() {
     local dirName="$1" # nome da diretoria origem (onde estao os ficheiros para backup)
 
-    echo ""
 
-    echo -e "\e[1mPRINT SUMMARY DE $(basename "$dirName")\e[0m" #Adicionei isto!!
-
-    echo ""
-
-    echo "    -> While backing up $dirName: $errors Errors; $warnings Warnings; $updatedFiles Updated; $copiedFiles Copied (${copiedSize}B); $deletedFiles Deleted (${deletedSize}B)"
+    echo "While backing up $dirName: $errors Errors; $warnings Warnings; $updatedFiles Updated; $copiedFiles Copied (${copiedSize}B); $deletedFiles Deleted (${deletedSize}B)"
 
     echo ""
     
