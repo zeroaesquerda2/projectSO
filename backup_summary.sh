@@ -43,7 +43,9 @@ case ${opt} in
                 echo "$item"
             
             done
-            
+        else
+            echo "Warning: Exclusion file '$tfile' does not exist."
+            ((warnings++)) 
         fi
 
     ;;
@@ -64,6 +66,8 @@ case ${opt} in
 
     esac
 done
+
+
 
 # Função para verificar se um ficheiro deve ser excluído
 function fileM() {
@@ -180,22 +184,31 @@ function Delete() {
         if [ -f "$backupFile" ]; then
             # If the file exists in backup but not in source, delete it
             if [ ! -e "$srcFile" ]; then
+                local fileSize=$(stat -c%s "$backupFile")
 
                 checkModeM rm -rf "$backupFile"
 
                 echo "Removing $backupFile as it's not in the source directory"
                 ((warnings++))
+                ((deletedFiles++))
+                deletedSize=$((deletedSize + fileSize))
+            else
+                    echo "Failed to delete file '$backupFile'."
+                    ((errors++))
             fi
 
         elif [ -d "$backupFile" ]; then
             
             if [ ! -e "$srcFile" ]; then
-                
-                checkModeM rm -rf "$backupFile"
-
-                echo "Removing directory $backupFile as it's not in the source directory"
-                ((warnings++))
-
+                 local dirSize=$(du -sb "$backupFile" | cut -f1)
+                if checkModeM rm -rf "$backupFile"; then
+                    echo "Removing directory $backupFile as it's not in the source directory"
+                    ((deletedFiles++))
+                    deletedSize=$((deletedSize + dirSize))
+                else
+                    echo "Failed to delete directory '$backupFile'."
+                    ((errors++))
+                fi
             else
                 
                 Delete "$backupFile" "$srcFile"
