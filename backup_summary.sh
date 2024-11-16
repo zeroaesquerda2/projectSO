@@ -57,7 +57,7 @@ case ${opt} in
     ?)
         # Exibe mensagem de erro para opções inválidas
         echo "Invalid option: -${OPTARG}."
-
+        ((warnings++))
         exit 1
 
     ;;
@@ -138,6 +138,7 @@ function accsBackup(){
     else
     
         echo "Backup Directory Already Exists"
+        ((warnings++))
     
     fi
 
@@ -183,6 +184,7 @@ function Delete() {
                 checkModeM rm -rf "$backupFile"
 
                 echo "Removing $backupFile as it's not in the source directory"
+                ((warnings++))
             fi
 
         elif [ -d "$backupFile" ]; then
@@ -192,6 +194,7 @@ function Delete() {
                 checkModeM rm -rf "$backupFile"
 
                 echo "Removing directory $backupFile as it's not in the source directory"
+                ((warnings++))
 
             else
                 
@@ -327,4 +330,3 @@ function printSummary() {
 
 # Chama a função principal de backup com os diretórios fornecidos
 accsBackup  "$pathtoDir" "$backupDir"
- 
