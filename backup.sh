@@ -22,10 +22,10 @@ case ${opt} in
 
         if [ -n "$tfile" ] && [ -f "$tfile" ]; then
 
-            while read -r LINE; do
-
-                fileList+=("$(basename "$LINE")")  # Adiciona arquivo/diretório à lista
-
+            while IFS= read -r LINE || [ -n "$LINE" ]; do
+                if [ -n "$LINE" ]; then # verifica se a linha sta vazia
+                    fileList+=("$(basename "$LINE")")   # Adiciona o nome base à lista de exclusão
+                fi
             done < "$tfile"
 
             for item in "${fileList[@]}"; do
@@ -33,7 +33,6 @@ case ${opt} in
                 echo "$item"
             
             done
-            
         fi
 
     ;;
@@ -107,11 +106,47 @@ if [ ! -d "$pathtoDir" ]; then
 
 fi
 
+# Esta função verifica se existe espaço suficiente na diretoria destino
+function checkSpace() {
+    local srcDir="$1"
+    local destDir="$2"
+
+    # Calcula o tamanho total do diretório de origem em bytes
+    local srcSize=$(du -sb "$srcDir" 2>/dev/null | awk '{print $1}') # awk '{print $1}' isto é para não nos
+    if [ -z "$srcSize" ]; then                                       # passar informação desnecessaria
+        echo "Error: Unable to calculate the size of the source directory. Exiting."
+        exit 1
+    fi
+
+    # Obtém o espaço disponível no destino em bytes
+    local availableSpace=$(df -B1 "$destDir" | tail -1 | awk '{print $4}') # o mesmo que em cima
+    if [ -z "$availableSpace" ]; then
+        echo "Error: Unable to determine available space on the destination. Exiting."
+        exit 1
+    fi
+
+    # Compara o espaço disponível com o tamanho do diretório de origem
+    if [ "$availableSpace" -ge "$srcSize" ]; then
+        echo "Sufficient space available for the backup."
+        return 0
+    else
+        echo "Warning: Not enough space for the backup."
+        echo "Source size: $((srcSize / 1024 / 1024)) MB, Available space: $((availableSpace / 1024 / 1024)) MB"
+        return 1
+    fi
+}
+
 # Função principal para realizar o backup
 function accsBackup(){
 
     local pathtoDir="$1"
     local backupDir="$2"
+
+     # Verifica se há espaço suficiente no destino
+    if ! checkSpace "$pathtoDir" "$backupDir"; then
+        echo "Error: Insuficient space on backup directory. Exiting."
+        exit 1
+    fi
 
     # Cria o diretório de backup se ele não existir e se não estiver no modo de verificação
     if [ ! -d "$backupDir" ]; then
@@ -153,15 +188,15 @@ function accsBackup(){
 }
 
 function Delete() {
-    local destDir="$1"   # Backup directory
-    local pathDir="$2"   # Source directory
+    local destDir="$1"   # Diretoria de destino
+    local pathDir="$2"   # Diretoria de origem
 
     for backupFile in "$destDir"/*; do
 
         srcFile="$pathDir/$(basename "$backupFile")"
 
         if [ -f "$backupFile" ]; then
-            # If the file exists in backup but not in source, delete it
+            # Se o ficheiro existir no backup mas não na source, dar delete no ficheiro
             if [ ! -e "$srcFile" ]; then
 
                 checkModeM rm -rf "$backupFile"
