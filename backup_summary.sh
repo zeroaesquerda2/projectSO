@@ -128,7 +128,7 @@ backupDir="$2"
 
 if [ ! -d "$pathtoDir" ]; then
 
-    echo "Error: O diretório de trabalho '$pathtoDir' não existe."
+    echo "Error: Work Directory '$pathtoDir' doesn't exist."
 
     ((errors++))
 
@@ -140,6 +140,12 @@ fi
 function checkSpace() {
     local srcDir="$1"
     local destDir="$2"
+
+    # Cria o diretório de destino caso não exista
+    if [ ! -d "$destDir" ]; then
+        echo "Creating backup directory: $destDir"
+        mkdir -p "$destDir"
+    fi
 
     # Calcula o tamanho total do diretório de origem em bytes
     local srcSize=$(du -sb "$srcDir" 2>/dev/null | awk '{print $1}') # awk '{print $1}' isto é para não nos
@@ -153,7 +159,8 @@ function checkSpace() {
     fi
 
     # Obtém o espaço disponível no destino em bytes
-    local availableSpace=$(df -B1 "$destDir" | tail -1 | awk '{print $4}') # o mesmo que em cima
+    #local availableSpace=$(stat -f --format="%a*%s" "$destDir" | bc) # alternativa ao df
+    local availableSpace=$(df -B1 "$destDir" 2>/dev/null | tail -1 | awk '{print $4}') # o mesmo que em cima
     if [ -z "$availableSpace" ]; then
         
         echo "Error: Unable to determine available space on the destination. Exiting."
@@ -237,7 +244,7 @@ function Delete() {
                 local dirSize=$(du -sb "$backupFile" | cut -f1)
                 if checkModeM rm -rf "$backupFile"; then
 
-                    ((deletedFiles++)
+                    ((deletedFiles++))
 
                     deletedSize=$((deletedSize + dirSize))
 
