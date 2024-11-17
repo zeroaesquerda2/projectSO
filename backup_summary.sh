@@ -34,7 +34,7 @@ case ${opt} in
 
             while IFS= read -r LINE || [ -n "$LINE" ]; do
                 if [ -n "$LINE" ]; then # verifica se a linha sta vazia
-                
+
                     fileList+=("$(basename "$LINE")")   # Adiciona o nome base à lista de exclusão
 
                 else
@@ -79,6 +79,7 @@ function fileM() {
     for item in "${fileList[@]}"; do
         
         if [[ "$file" == "$item" ]]; then
+
             echo "Warning: $file is in the exclusion list and will not be backed up."
 
             ((warnings++))
@@ -94,6 +95,7 @@ function fileM() {
 # Função para verificar se um ficheiro corresponde à expressão regular
 function regexM(){
     if [ -n "$regex" ] && [[ ! "$1" =~ "$regex" ]]; then
+
         echo "Warning: $1 does not match the regex filter and will be skipped."
 
         ((warnings++))
@@ -135,6 +137,15 @@ if [ ! -d "$pathtoDir" ]; then
     exit 1
 
 fi
+if [[ "$backupDir" = "$pathtoDir"* ]]; then
+
+    echo "Error: Work Dir '$pathtoDir' is either the same as or a subdirectory of '$backupDir'."
+
+    ((errors++))
+    
+    exit 1
+
+fi
 
 # Esta função verifica se existe espaço suficiente na diretoria destino
 function checkSpace() {
@@ -143,8 +154,9 @@ function checkSpace() {
 
     # Cria o diretório de destino caso não exista
     if [ ! -d "$destDir" ]; then
-        echo "Creating backup directory: $destDir"
+
         mkdir -p "$destDir"
+
     fi
 
     # Calcula o tamanho total do diretório de origem em bytes

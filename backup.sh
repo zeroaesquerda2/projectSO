@@ -7,7 +7,7 @@ fileList=()
 
 # Processamento das opções passadas na linha de comando
 while getopts ":cb:r:" opt; do
-case ${opt} in
+case $opt in
 
     c)
     
@@ -21,7 +21,6 @@ case ${opt} in
         tfile="$OPTARG"
 
         if [ -n "$tfile" ] && [ -f "$tfile" ]; then
-
             while IFS= read -r LINE || [ -n "$LINE" ]; do
 
                 if [ -n "$LINE" ]; then # verifica se a linha sta vazia
@@ -30,14 +29,13 @@ case ${opt} in
                 fi
 
             done < "$tfile"
-
-            
         fi
 
     ;;
 
     r)
         # Define a expressão regular para filtragem de ficheiros
+         
         regex="$OPTARG"
 
     ;;
@@ -49,7 +47,6 @@ case ${opt} in
         exit 1
 
     ;;
-
     esac
 done
 
@@ -71,7 +68,7 @@ function fileM() {
 
 # Função para verificar se um ficheiro corresponde à expressão regular
 function regexM(){
-    if [ -n "$regex" ] && [[ ! "$1" =~ "$regex" ]]; then
+    if [ -n "$regex" ] && [[ ! "$1" =~ $regex ]]; then
 
         return 1
     
@@ -118,6 +115,12 @@ function checkSpace() {
     local srcDir="$1"
     local destDir="$2"
 
+    if [ ! -d "$destDir" ]; then
+
+        mkdir -p "$destDir"
+        
+    fi
+
     # Calcula o tamanho total do diretório de origem em bytes
     local srcSize=$(du -sb "$srcDir" 2>/dev/null | awk '{print $1}') # awk '{print $1}' isto é para não nos
     
@@ -156,11 +159,13 @@ function accsBackup(){
     local backupDir="$2"
 
     # Verifica se há espaço suficiente no destino
+    if [ "$checkMode" = false ]; then
+        if ! checkSpace "$pathtoDir" "$backupDir"; then
 
-    parentDir=$(dirname "$pathtoDir")
-    if ! checkSpace "$parentDir" "$backupDir"; then
-        echo "Error: Insufficient space on backup directory. Exiting."
-        exit 1
+            echo "Error: Insufficient space on backup directory. Exiting."
+
+            exit 1
+        fi
     fi
 
     # Cria o diretório de backup se ele não existir e se não estiver no modo de verificação
@@ -170,16 +175,9 @@ function accsBackup(){
     
     fi
 
-    # Verifica se o diretório de backup está vazio
-    if [ ! "$(ls -A $backupDir)" ]; then
-
-            RecursiveDir "$pathtoDir/." "$backupDir"
-
-    else
-
-        RecursiveDir "$pathtoDir" "$backupDir"
-
-    fi  
+    
+    RecursiveDir "$pathtoDir" "$backupDir"
+    Delete "$backupDir" "$pathtoDir"  
 }
 
 function Delete() {
@@ -233,10 +231,12 @@ function RecursiveDir(){
 
     for file in "$srcDir"/*; do
 
-        if ! regexM "$(basename "$file")" ; then
+        if [ -f "$file" ]; then
+            if ! regexM "$(basename "$file")" ; then
 
-            continue
-                    
+                continue
+                        
+            fi
         fi
 
         if fileM "$(basename "$file")"; then
@@ -289,8 +289,6 @@ function RecursiveDir(){
 
         fi
     done
-
-    Delete "$backupDir" "$pathtoDir"
 
 }
 # Chama a função principal de backup com os diretórios fornecidos
