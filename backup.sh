@@ -23,16 +23,14 @@ case ${opt} in
         if [ -n "$tfile" ] && [ -f "$tfile" ]; then
 
             while IFS= read -r LINE || [ -n "$LINE" ]; do
+
                 if [ -n "$LINE" ]; then # verifica se a linha sta vazia
+
                     fileList+=("$(basename "$LINE")")   # Adiciona o nome base à lista de exclusão
                 fi
+
             done < "$tfile"
 
-            for item in "${fileList[@]}"; do
-        
-                echo "$item"
-            
-            done
             
         fi
 
@@ -122,8 +120,9 @@ function checkSpace() {
 
     # Calcula o tamanho total do diretório de origem em bytes
     local srcSize=$(du -sb "$srcDir" 2>/dev/null | awk '{print $1}') # awk '{print $1}' isto é para não nos
+    
     if [ -z "$srcSize" ]; then  
-                                         # passar informação desnecessaria
+        # passar informação desnecessaria
         echo "Error: Unable to calculate the size of the source directory. Exiting."
         
         exit 1
@@ -156,9 +155,11 @@ function accsBackup(){
     local pathtoDir="$1"
     local backupDir="$2"
 
-     # Verifica se há espaço suficiente no destino
-    if ! checkSpace "$pathtoDir" "$backupDir"; then
-        echo "Error: Insuficient space on backup directory. Exiting."
+    # Verifica se há espaço suficiente no destino
+
+    parentDir=$(dirname "$pathtoDir")
+    if ! checkSpace "$parentDir" "$backupDir"; then
+        echo "Error: Insufficient space on backup directory. Exiting."
         exit 1
     fi
 
