@@ -46,8 +46,8 @@ case ${opt} in
 
         else
             echo "Error: Exclusion file '$tfile' does not exist or is not accessible."
-            ((errors++))
             
+            ((errors++))
         fi
 
     ;;
