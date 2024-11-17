@@ -101,21 +101,13 @@ function accsBackup(){
 
     if [ ! -d "$backupDir" ]; then
 
-        echo "Creating Backup Directory"
-
-        checkModeM mkdir -p $backupDir;
-
-        echo "mkdir -p $backupDir";
-    
-    else
-    
-        echo "Backup Directory Exists";
+        checkModeM mkdir -p "$backupDir";
     
     fi
 
     if [ ! "$(ls -A $backupDir)" ]; then
         
-        checkModeM cp -a $pathtoDir/. $backupDir;
+        checkModeM cp -a "$pathtoDir"/. "$backupDir";
 
         echo "cp -a $pathtoDir/. $backupDir";
 
@@ -134,23 +126,15 @@ function accsBackup(){
 
                 backup_date=$(ls -l "$backup_file" | awk '{print $6}');
             
-                if [ "$date_file" = "$backup_date" ]; then
+                if [ "$date_file" != "$backup_date" ]; then
 
-                    echo "File $(basename "$file") is up-to-date."
-
-                else
-
-                    echo "File $(basename "$file") has a different modification date in the backup.";
-
-                    checkModeM cp -a "$file" $backupDir;
+                    checkModeM cp -a "$file" "$backupDir";
 
                     echo "cp -a $file $backupDir";
 
                 fi
             else
-                echo "File $(basename "$file") is missing in the backup.Let's add it to the backup.";
-
-                checkModeM cp -a "$file" $backupDir;
+                checkModeM cp -a "$file" "$backupDir";
 
                 echo "cp -a $file $backupDir";
             fi
