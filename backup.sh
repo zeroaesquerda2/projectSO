@@ -101,7 +101,7 @@ backupDir="$2"
 
 if [ ! -d "$pathtoDir" ]; then
 
-    #echo "Error: Work Directory '$pathtoDir' doesn't exist."
+    echo "Error: Work Directory '$pathtoDir' doesn't exist."
 
     exit 1
 
@@ -109,7 +109,7 @@ fi
 
 if [[ "$backupDir" = "$pathtoDir"* ]]; then
 
-    #echo "Error: Work Dir '$pathtoDir' is either the same as or a subdirectory of '$backupDir'."
+    echo "Error: Work Dir '$pathtoDir' is either the same as or a subdirectory of '$backupDir'."
 
     exit 1
 
@@ -122,22 +122,27 @@ function checkSpace() {
 
     # Calcula o tamanho total do diretório de origem em bytes
     local srcSize=$(du -sb "$srcDir" 2>/dev/null | awk '{print $1}') # awk '{print $1}' isto é para não nos
-    if [ -z "$srcSize" ]; then                                       # passar informação desnecessaria
+    if [ -z "$srcSize" ]; then  
+                                         # passar informação desnecessaria
         echo "Error: Unable to calculate the size of the source directory. Exiting."
+        
         exit 1
     fi
 
     # Obtém o espaço disponível no destino em bytes
     local availableSpace=$(df -B1 "$destDir" | tail -1 | awk '{print $4}') # o mesmo que em cima
     if [ -z "$availableSpace" ]; then
+        
         echo "Error: Unable to determine available space on the destination. Exiting."
+        
         exit 1
     fi
 
     # Compara o espaço disponível com o tamanho do diretório de origem
     if [ "$availableSpace" -ge "$srcSize" ]; then
-        echo "Sufficient space available for the backup."
+
         return 0
+
     else
         echo "Warning: Not enough space for the backup."
         echo "Source size: $((srcSize / 1024 / 1024)) MB, Available space: $((availableSpace / 1024 / 1024)) MB"
@@ -160,42 +165,20 @@ function accsBackup(){
     # Cria o diretório de backup se ele não existir e se não estiver no modo de verificação
     if [ ! -d "$backupDir" ]; then
 
-        #echo "Creating Backup Directory"
-
         checkModeM mkdir -p "$backupDir"
-
-        #echo "mkdir -p $backupDir"
-    
-    #else
-    
-        #echo -e "\e[1mBackup Directory Already Exists\e[0m"
-
-        #echo ""
     
     fi
 
     # Verifica se o diretório de backup está vazio
     if [ ! "$(ls -A $backupDir)" ]; then
 
-            #echo -e "\e[1mFiles that are in the Directory we want to backup\e[0m"
-
-            #checkModeM ls -l $pathtoDir
-
             RecursiveDir "$pathtoDir/." "$backupDir"
 
     else
 
-        #echo -e "\e[1mFiles that are in the Directory we want to backup\e[0m"
-        
-        #checkModeM ls -l $pathtoDir
-
-        #echo -e "\e[1mFiles in the Backup Directory\e[0m"
-
-        #checkModeM ls -l $backupDir
-
         RecursiveDir "$pathtoDir" "$backupDir"
 
-    fi
+    fi  
 }
 
 function Delete() {
@@ -212,7 +195,6 @@ function Delete() {
 
                 checkModeM rm -rf "$backupFile"
 
-                #echo "Removing $backupFile as it's not in the source directory"
             fi
 
         elif [ -d "$backupFile" ]; then
@@ -220,8 +202,6 @@ function Delete() {
             if [ ! -e "$srcFile" ]; then
                 
                 checkModeM rm -rf "$backupFile"
-
-                #echo "Removing directory $backupFile as it's not in the source directory"
 
             else
                 
@@ -245,8 +225,6 @@ function RecursiveDir(){
     fi
 
     if [ -z "$(ls -A "$srcDir")" ]; then
-
-        #echo "Directory $srcDir is empty."
 
         return 1
 
@@ -274,8 +252,6 @@ function RecursiveDir(){
 
                     if [ "$date_file" != "$backup_date" ]; then
 
-                        #echo "$(basename "$file") has a different modification date."
-
                         checkModeM cp -a "$file" "$destDir"
 
                         echo "cp -a "$file" $destDir" 
@@ -299,8 +275,6 @@ function RecursiveDir(){
                 else
 
                     checkModeM mkdir -p "$destDir/$(basename "$file")"
-
-                    #echo "mkdir -p $file $destDir" 
 
                     RecursiveDir "$file" "$destDir/$(basename "$file")"
 

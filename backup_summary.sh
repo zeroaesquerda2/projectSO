@@ -64,7 +64,9 @@ case ${opt} in
     ?)
         # Exibe mensagem de erro para opções inválidas
         echo "Invalid option: -${OPTARG}."
+
         ((errors++))
+
         exit 1
 
     ;;
@@ -80,9 +82,10 @@ function fileM() {
         
         if [[ "$file" == "$item" ]]; then
             echo "Warning: $file is in the exclusion list and will not be backed up."
-            ((warnings++))
-            return 1  # O ficheiro está na lista de exclusão
 
+            ((warnings++))
+
+            return 1  # O ficheiro está na lista de exclusão
         fi
     
     done
@@ -94,7 +97,9 @@ function fileM() {
 function regexM(){
     if [ -n "$regex" ] && [[ ! "$1" =~ "$regex" ]]; then
         echo "Warning: $1 does not match the regex filter and will be skipped."
+
         ((warnings++))
+
         return 1
     
     else
@@ -109,7 +114,9 @@ function checkModeM(){
     if [[ "$checkMode" == false ]]; then
         "$@"
         if [ $? -ne 0 ]; then
+
             echo "Error: Command '$@' failed."
+
             ((errors++))
         fi
     fi
@@ -139,26 +146,38 @@ function checkSpace() {
     # Calcula o tamanho total do diretório de origem em bytes
     local srcSize=$(du -sb "$srcDir" 2>/dev/null | awk '{print $1}') # awk '{print $1}' isto é para não nos
     if [ -z "$srcSize" ]; then                                       # passar informação desnecessaria
+        
         echo "Error: Unable to calculate the size of the source directory. Exiting."
+        
         ((errors++))
+        
         exit 1
     fi
 
     # Obtém o espaço disponível no destino em bytes
     local availableSpace=$(df -B1 "$destDir" | tail -1 | awk '{print $4}') # o mesmo que em cima
     if [ -z "$availableSpace" ]; then
+        
         echo "Error: Unable to determine available space on the destination. Exiting."
+        
         ((errors++))
+        
         exit 1
     fi
 
     # Compara o espaço disponível com o tamanho do diretório de origem
     if [ "$availableSpace" -ge "$srcSize" ]; then
+
         return 0
+
     else
+        
         echo "Warning: Not enough space for the backup."
+        
         ((warnings++))
+        
         echo "Source size: $((srcSize / 1024 / 1024)) MB, Available space: $((availableSpace / 1024 / 1024)) MB"
+        
         return 1
     fi
 }
@@ -171,7 +190,9 @@ function accsBackup(){
 
     # Verifica se há espaço suficiente no destino
     if ! checkSpace "$pathtoDir" "$backupDir"; then
+
         echo "Error: Insuficient space on backup directory. Exiting."
+
         exit 1
     fi
 
@@ -183,7 +204,6 @@ function accsBackup(){
     fi
 
     RecursiveDir "$pathtoDir" "$backupDir"
-    #printSummary "$pathtoDir"
     Delete "$backupDir" "$pathtoDir"
     # o print da funcao summary depois do processamento
 }
@@ -199,13 +219,15 @@ function Delete() {
         if [ -f "$backupFile" ]; then
             # If the file exists in backup but not in source, delete it
             if [ ! -e "$srcFile" ]; then
+            
                 local fileSize=$(stat -c%s "$backupFile")
 
                 checkModeM rm -rf "$backupFile"
 
-                echo "Removing $backupFile as it's not in the source directory"
                 ((warnings++))
+
                 ((deletedFiles++))
+
                 deletedSize=$((deletedSize + fileSize))
             else
                 ((errors++))
@@ -216,9 +238,11 @@ function Delete() {
             if [ ! -e "$srcFile" ]; then
                 local dirSize=$(du -sb "$backupFile" | cut -f1)
                 if checkModeM rm -rf "$backupFile"; then
-                    echo "Removing directory $backupFile as it's not in the source directory"
-                    ((deletedFiles++))
+
+                    ((deletedFiles++)
+
                     deletedSize=$((deletedSize + dirSize))
+
                 else
                     echo "Error: Failed to delete directory '$backupFile'."
                     ((errors++))
@@ -242,8 +266,11 @@ function RecursiveDir(){
     local destDir="$2";
 
     if [ ! -d "$srcDir" ]; then
+
         echo "Error: Directory $srcDir does not exist or is inaccessible."
+
         ((errors++))
+
         return 1
 
     fi
@@ -262,8 +289,11 @@ function RecursiveDir(){
 
             if [ -f "$file" ]; then
                 if [ ! -r "$file" ]; then
+
                     echo "Error: No read permission for file $file."
+
                     ((errors++))
+
                     continue
                 fi
 
@@ -289,45 +319,48 @@ function RecursiveDir(){
 
                     fi
                 else
-
                     checkModeM cp -a "$file" "$destDir"
-                    ((copiedFiles++))
-                    copiedSize=$((copiedSize + fileSize))
-                    echo "cp -a $file $backup_file"
-                    
 
+                    ((copiedFiles++))
+
+                    copiedSize=$((copiedSize + fileSize))
+
+                    echo "cp -a $file $backup_file"
                 fi
 
             elif [ -d "$file" ]; then
                 if [ ! -x "$file" ]; then
+
                     echo "Error: No execute permission for directory $file."
+
                     ((errors++))
+
                     continue
                 else
+
                     checkModeM mkdir -p "$backup_file" 
+
                     RecursiveDir "$file" "$backup_file"
                 fi
 
             else
                 echo "Error: $file could not be accessed."
+
                 ((errors++))
-
             fi
-
         else 
 
             continue
 
-        fi
-        
+        fi  
     done
 
     printSummary "$srcDir"
-
 }
 
 # Função para imprimir o sumário
 function printSummary() {
+
     local dirName="$1" # nome da diretoria origem (onde estao os ficheiros para backup)
 
     echo "While backuping $dirName: $errors Errors; $warnings Warnings; $updatedFiles Updated; $copiedFiles Copied (${copiedSize}B); $deletedFiles Deleted (${deletedSize}B)"
