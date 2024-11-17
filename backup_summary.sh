@@ -34,14 +34,13 @@ case ${opt} in
 
             while IFS= read -r LINE || [ -n "$LINE" ]; do
                 if [ -n "$LINE" ]; then # verifica se a linha sta vazia
-
+                    
                     fileList+=("$(basename "$LINE")")   # Adiciona o nome base à lista de exclusão
-
+                
                 else
                     echo "Warning: Found an empty line in the exclusion file."
-
+                    
                     ((warnings++))
-
                 fi
             done < "$tfile"
 
@@ -79,7 +78,6 @@ function fileM() {
     for item in "${fileList[@]}"; do
         
         if [[ "$file" == "$item" ]]; then
-
             echo "Warning: $file is in the exclusion list and will not be backed up."
 
             ((warnings++))
@@ -95,7 +93,6 @@ function fileM() {
 # Função para verificar se um ficheiro corresponde à expressão regular
 function regexM(){
     if [ -n "$regex" ] && [[ ! "$1" =~ "$regex" ]]; then
-
         echo "Warning: $1 does not match the regex filter and will be skipped."
 
         ((warnings++))
@@ -122,6 +119,14 @@ function checkModeM(){
     fi
 }
 
+# Verifica se os argumentos obrigatórios foram fornecidos
+if [ $# -lt 2 ]; then
+
+    echo "Usage: $0 [-c] [-b exclude_file] [-r regex] source_directory backup_directory"
+
+    exit 1
+fi
+
 # Remove as opções processadas da lista de argumentos.
 shift $((OPTIND - 1)) 
 
@@ -130,7 +135,7 @@ backupDir="$2"
 
 if [ ! -d "$pathtoDir" ]; then
 
-    echo "Error: Work Directory '$pathtoDir' doesn't exist."
+    echo "Error: Work directory '$pathtoDir' doesn't exist."
 
     ((errors++))
 
@@ -152,13 +157,6 @@ function checkSpace() {
     local srcDir="$1"
     local destDir="$2"
 
-    # Cria o diretório de destino caso não exista
-    if [ ! -d "$destDir" ]; then
-
-        mkdir -p "$destDir"
-
-    fi
-
     # Calcula o tamanho total do diretório de origem em bytes
     local srcSize=$(du -sb "$srcDir" 2>/dev/null | awk '{print $1}') # awk '{print $1}' isto é para não nos
     if [ -z "$srcSize" ]; then                                       # passar informação desnecessaria
@@ -171,8 +169,7 @@ function checkSpace() {
     fi
 
     # Obtém o espaço disponível no destino em bytes
-    #local availableSpace=$(stat -f --format="%a*%s" "$destDir" | bc) # alternativa ao df
-    local availableSpace=$(df -B1 "$destDir" 2>/dev/null | tail -1 | awk '{print $4}') # o mesmo que em cima
+    local availableSpace=$(df -B1 "$destDir" | tail -1 | awk '{print $4}') # o mesmo que em cima
     if [ -z "$availableSpace" ]; then
         
         echo "Error: Unable to determine available space on the destination. Exiting."
@@ -205,14 +202,6 @@ function accsBackup(){
     local pathtoDir="$1"
     local backupDir="$2"
 
-    # Verifica se há espaço suficiente no destino
-    if ! checkSpace "$pathtoDir" "$backupDir"; then
-
-        echo "Error: Insuficient space on backup directory. Exiting."
-
-        exit 1
-    fi
-
     # Cria o diretório de backup se ele não existir e se não estiver no modo de verificação
     if [ ! -d "$backupDir" ]; then
 
@@ -220,9 +209,18 @@ function accsBackup(){
     
     fi
 
+    # Verifica se há espaço suficiente no destino
+    if [ "$checkMode" = false ]; then
+        if ! checkSpace "$pathtoDir" "$backupDir"; then
+
+            echo "Error: Insufficient space on backup directory. Exiting."
+
+            exit 1
+        fi
+    fi
+
     RecursiveDir "$pathtoDir" "$backupDir"
     Delete "$backupDir" "$pathtoDir"
-    # o print da funcao summary depois do processamento
 }
 
 function Delete() {
@@ -253,7 +251,9 @@ function Delete() {
         elif [ -d "$backupFile" ]; then
             
             if [ ! -e "$srcFile" ]; then
+
                 local dirSize=$(du -sb "$backupFile" | cut -f1)
+
                 if checkModeM rm -rf "$backupFile"; then
 
                     ((deletedFiles++))
@@ -262,6 +262,7 @@ function Delete() {
 
                 else
                     echo "Error: Failed to delete directory '$backupFile'."
+                    
                     ((errors++))
                 fi
             else
@@ -270,10 +271,12 @@ function Delete() {
             fi
         else
             echo "Error: Unable to access $backupFile."
+            
             ((errors++))
         fi
     done
 }
+
 
 # Função recursiva para copiar arquivos e diretórios
 function RecursiveDir(){
@@ -294,10 +297,14 @@ function RecursiveDir(){
 
     for file in "$srcDir"/*; do
 
-        if ! regexM "$(basename "$file")" ; then
+        if [ -f "$file" ]; then
 
-            continue
-                    
+            if ! regexM "$(basename "$file")" ; then
+
+                continue
+                        
+            fi
+            
         fi
 
         if fileM "$(basename "$file")"; then

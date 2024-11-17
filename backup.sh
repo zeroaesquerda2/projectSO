@@ -26,11 +26,17 @@ case $opt in
                 if [ -n "$LINE" ]; then # verifica se a linha sta vazia
 
                     fileList+=("$(basename "$LINE")")   # Adiciona o nome base à lista de exclusão
+                
                 fi
 
             done < "$tfile"
-        fi
+        else
 
+            echo "Error: Exclusion file '$tfile' does not exist or is not accessible."
+            
+            exit 1
+        
+        fi
     ;;
 
     r)
@@ -91,6 +97,14 @@ function checkModeM(){
 # Remove as opções processadas da lista de argumentos.
 shift $((OPTIND - 1)) 
 
+# Verifica se os argumentos obrigatórios foram fornecidos
+if [ $# -lt 2 ]; then
+
+    echo "Usage: $0 [-c] [-b exclude_file] [-r regex] source_directory backup_directory"
+
+    exit 1
+fi
+
 pathtoDir="$1"
 backupDir="$2"
 
@@ -114,12 +128,6 @@ fi
 function checkSpace() {
     local srcDir="$1"
     local destDir="$2"
-
-    if [ ! -d "$destDir" ]; then
-
-        mkdir -p "$destDir"
-        
-    fi
 
     # Calcula o tamanho total do diretório de origem em bytes
     local srcSize=$(du -sb "$srcDir" 2>/dev/null | awk '{print $1}') # awk '{print $1}' isto é para não nos
@@ -232,11 +240,13 @@ function RecursiveDir(){
     for file in "$srcDir"/*; do
 
         if [ -f "$file" ]; then
+
             if ! regexM "$(basename "$file")" ; then
 
                 continue
                         
             fi
+            
         fi
 
         if fileM "$(basename "$file")"; then
