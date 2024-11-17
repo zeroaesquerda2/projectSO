@@ -45,7 +45,59 @@ if [ ! -d "$pathtoDir" ]; then
 
 fi
 
+# Esta função verifica se existe espaço suficiente na diretoria destino
+function checkSpace() {
+    local srcDir="$1"
+    local destDir="$2"
+
+    # Cria o diretório de destino caso não exista
+    if [ ! -d "$destDir" ]; then
+        echo "Creating backup directory: $destDir"
+        mkdir -p "$destDir"
+    fi
+
+    # Calcula o tamanho total do diretório de origem em bytes
+    local srcSize=$(du -sb "$srcDir" 2>/dev/null | awk '{print $1}') # awk '{print $1}' isto é para não nos
+    if [ -z "$srcSize" ]; then                                       # passar informação desnecessaria
+        
+        echo "Error: Unable to calculate the size of the source directory. Exiting."
+        
+        exit 1
+    fi
+
+    # Obtém o espaço disponível no destino em bytes
+    #local availableSpace=$(stat -f --format="%a*%s" "$destDir" | bc) # alternativa ao df
+    local availableSpace=$(df -B1 "$destDir" 2>/dev/null | tail -1 | awk '{print $4}') # o mesmo que em cima
+    if [ -z "$availableSpace" ]; then
+        
+        echo "Error: Unable to determine available space on the destination. Exiting."
+        
+        exit 1
+    fi
+
+    # Compara o espaço disponível com o tamanho do diretório de origem
+    if [ "$availableSpace" -ge "$srcSize" ]; then
+
+        return 0
+
+    else
+        
+        echo "Warning: Not enough space for the backup."
+        
+        echo "Source size: $((srcSize / 1024 / 1024)) MB, Available space: $((availableSpace / 1024 / 1024)) MB"
+        
+        return 1
+    fi
+}
+
 function accsBackup(){
+
+     if ! checkSpace "$pathtoDir" "$backupDir"; then
+
+        echo "Error: Insuficient space on backup directory. Exiting."
+
+        exit 1
+    fi
 
     if [ ! -d "$backupDir" ]; then
 
