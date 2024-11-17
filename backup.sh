@@ -156,11 +156,13 @@ function accsBackup(){
     local backupDir="$2"
 
     # Verifica se há espaço suficiente no destino
+    if ! checkMode; then
+        if ! checkSpace "$pathtoDir" "$backupDir"; then
 
-    parentDir=$(dirname "$pathtoDir")
-    if ! checkSpace "$parentDir" "$backupDir"; then
-        echo "Error: Insufficient space on backup directory. Exiting."
-        exit 1
+            echo "Error: Insuficient space on backup directory. Exiting."
+
+            exit 1
+        fi
     fi
 
     # Cria o diretório de backup se ele não existir e se não estiver no modo de verificação

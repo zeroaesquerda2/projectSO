@@ -92,11 +92,13 @@ function checkSpace() {
 
 function accsBackup(){
 
-     if ! checkSpace "$pathtoDir" "$backupDir"; then
+    if ! checkMode; then
+        if ! checkSpace "$pathtoDir" "$backupDir"; then
 
-        echo "Error: Insuficient space on backup directory. Exiting."
+            echo "Error: Insuficient space on backup directory. Exiting."
 
-        exit 1
+            exit 1
+        fi
     fi
 
     if [ ! -d "$backupDir" ]; then
