@@ -169,7 +169,7 @@ function accsBackup(){
     if [ ! -d "$backupDir" ]; then
 
         checkModeM mkdir -p "$backupDir"
-    
+
     fi
 
     # Verifica se o diretório de backup está vazio
