@@ -34,18 +34,16 @@ case ${opt} in
 
             while IFS= read -r LINE || [ -n "$LINE" ]; do
                 if [ -n "$LINE" ]; then # verifica se a linha sta vazia
+                
                     fileList+=("$(basename "$LINE")")   # Adiciona o nome base à lista de exclusão
+
                 else
                     echo "Warning: Found an empty line in the exclusion file."
+
                     ((warnings++))
+
                 fi
             done < "$tfile"
-
-            for item in "${fileList[@]}"; do
-        
-                echo "$item"
-            
-            done
 
         else
             echo "Error: Exclusion file '$tfile' does not exist or is not accessible."
@@ -226,7 +224,7 @@ function Delete() {
         if [ -f "$backupFile" ]; then
             # If the file exists in backup but not in source, delete it
             if [ ! -e "$srcFile" ]; then
-            
+
                 local fileSize=$(stat -c%s "$backupFile")
 
                 checkModeM rm -rf "$backupFile"
