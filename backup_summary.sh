@@ -183,7 +183,7 @@ function accsBackup(){
     fi
 
     RecursiveDir "$pathtoDir" "$backupDir"
-    printSummary "$pathtoDir"
+    #printSummary "$pathtoDir"
     Delete "$backupDir" "$pathtoDir"
     # o print da funcao summary depois do processamento
 }
@@ -280,12 +280,11 @@ function RecursiveDir(){
                         continue
 
                     else
-                        local fileSize=$(stat -c%s "$file")
 
                         checkModeM cp -a "$file" "$destDir"
-                        ((updatedFiles++))
-                        copiedSize=$((copiedSize + fileSize))
 
+                        ((updatedFiles++))
+                
                         echo "cp -a $file $backup_file" 
 
                     fi
@@ -323,7 +322,7 @@ function RecursiveDir(){
         
     done
 
-    #printSummary "$srcDir"
+    printSummary "$srcDir"
 
 }
 
