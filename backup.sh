@@ -95,7 +95,7 @@ backupDir="$2"
 
 if [ ! -d "$pathtoDir" ]; then
 
-    echo "Error: Work Directory '$pathtoDir' doesn't exist."
+    #echo "Error: Work Directory '$pathtoDir' doesn't exist."
 
     exit 1
 
@@ -103,7 +103,7 @@ fi
 
 if [[ "$backupDir" = "$pathtoDir"* ]]; then
 
-    echo "Error: Work Dir '$pathtoDir' is either the same as or a subdirectory of '$backupDir'."
+    #echo "Error: Work Dir '$pathtoDir' is either the same as or a subdirectory of '$backupDir'."
 
     exit 1
 
@@ -118,38 +118,38 @@ function accsBackup(){
     # Cria o diretório de backup se ele não existir e se não estiver no modo de verificação
     if [ ! -d "$backupDir" ]; then
 
-        echo "Creating Backup Directory"
+        #echo "Creating Backup Directory"
 
         checkModeM mkdir -p "$backupDir"
 
-        echo "mkdir -p $backupDir"
+        #echo "mkdir -p $backupDir"
     
-    else
+    #else
     
-        echo -e "\e[1mBackup Directory Already Exists\e[0m"
+        #echo -e "\e[1mBackup Directory Already Exists\e[0m"
 
-        echo ""
+        #echo ""
     
     fi
 
     # Verifica se o diretório de backup está vazio
     if [ ! "$(ls -A $backupDir)" ]; then
 
-            echo -e "\e[1mFiles that are in the Directory we want to backup\e[0m"
+            #echo -e "\e[1mFiles that are in the Directory we want to backup\e[0m"
 
-            checkModeM ls -l $pathtoDir
+            #checkModeM ls -l $pathtoDir
 
             RecursiveDir "$pathtoDir/." "$backupDir"
 
     else
 
-        echo -e "\e[1mFiles that are in the Directory we want to backup\e[0m"
+        #echo -e "\e[1mFiles that are in the Directory we want to backup\e[0m"
         
-        checkModeM ls -l $pathtoDir
+        #checkModeM ls -l $pathtoDir
 
-        echo -e "\e[1mFiles in the Backup Directory\e[0m"
+        #echo -e "\e[1mFiles in the Backup Directory\e[0m"
 
-        checkModeM ls -l $backupDir
+        #checkModeM ls -l $backupDir
 
         RecursiveDir "$pathtoDir" "$backupDir"
 
@@ -157,20 +157,20 @@ function accsBackup(){
 }
 
 function Delete() {
-    local destDir="$1"   # Backup directory
-    local pathDir="$2"   # Source directory
+    local destDir="$1"   # Backup Dir (Diretoria de Backup)
+    local pathDir="$2"   # Work Dir (Diretoria de Trabalho)
 
     for backupFile in "$destDir"/*; do
 
         srcFile="$pathDir/$(basename "$backupFile")"
 
         if [ -f "$backupFile" ]; then
-            # If the file exists in backup but not in source, delete it
+            # Se o ficheiro existir na Backup Dir e não na Work Dir, será removido.
             if [ ! -e "$srcFile" ]; then
 
                 checkModeM rm -rf "$backupFile"
 
-                echo "Removing $backupFile as it's not in the source directory"
+                #echo "Removing $backupFile as it's not in the source directory"
             fi
 
         elif [ -d "$backupFile" ]; then
@@ -179,7 +179,7 @@ function Delete() {
                 
                 checkModeM rm -rf "$backupFile"
 
-                echo "Removing directory $backupFile as it's not in the source directory"
+                #echo "Removing directory $backupFile as it's not in the source directory"
 
             else
                 
@@ -204,7 +204,7 @@ function RecursiveDir(){
 
     if [ -z "$(ls -A "$srcDir")" ]; then
 
-        echo "Directory $srcDir is empty."
+        #echo "Directory $srcDir is empty."
 
         return 1
 
@@ -230,13 +230,9 @@ function RecursiveDir(){
 
                     backup_date=$(stat -c %y "$backup_file")
 
-                    if [ "$date_file" == "$backup_date" ]; then
+                    if [ "$date_file" != "$backup_date" ]; then
 
-                        echo "$(basename "$file") is up-to-date."
-
-                    else
-
-                        echo "$(basename "$file") has a different modification date."
+                        #echo "$(basename "$file") has a different modification date."
 
                         checkModeM cp -a "$file" "$destDir"
 
@@ -262,7 +258,7 @@ function RecursiveDir(){
 
                     checkModeM mkdir -p "$destDir/$(basename "$file")"
 
-                    echo "mkdir -p $file $destDir" 
+                    #echo "mkdir -p $file $destDir" 
 
                     RecursiveDir "$file" "$destDir/$(basename "$file")"
 

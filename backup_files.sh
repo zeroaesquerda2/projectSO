@@ -61,7 +61,7 @@ function accsBackup(){
     
     fi
 
-    if [ find $backupDir -empty -type d ]; then
+    if [ ! "$(ls -A $backupDir)" ]; then
         
         checkModeM cp -a $pathtoDir/. $backupDir;
 
