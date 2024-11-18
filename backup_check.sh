@@ -56,7 +56,5 @@ function filesCheck() {
     done
 }
 
-# chamada da funcao
+# chamada da função
 filesCheck "$srcDir" "$backupDir" 
-
-# desculpa isto e teclado ingles e nao tem acentos nem cedilha
